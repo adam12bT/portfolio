@@ -197,6 +197,24 @@ import {
         "Enabled users to select electric scooters, while administrators managed the fleet.",
       ],
     },
+    {
+  title: "Project - MEDTECH",
+  company_name: "MEDTECH, Tunis",
+  icon: med, // Placeholder for e-commerce icon; replace with actual icon import
+  iconBg: "#F4D03F",
+  date: "September 2024 - December 2024",
+  points: [
+    "Designed and developed a full-stack e-commerce web application using the MERN stack (MongoDB, Express.js, React, Node.js).",
+    "Implemented features including user authentication, product catalog, shopping cart, and order management.",
+    "Ensured responsiveness and a user-friendly interface for seamless shopping experiences.",
+    "Integrated RESTful APIs for efficient data management between the front-end and back-end.",
+    "Gained expertise in full-stack development and modern web technologies."
+  ],
+},
+
+
+
+    
   ];
   
   const testimonials = [
