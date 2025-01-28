@@ -11,7 +11,7 @@ import { textVariant } from '../utils/motion';
 const ExperienceCard = ({ experience }) => (
   <VerticalTimelineElement
     contentStyle={{ background: '#1d1836', color: '#fff' }}
-    contentArrowStyle={{ borderRight: '7px solid #236631' }} // Fix color code
+    contentArrowStyle={{ borderRight: '7px solid #236631' }} 
     date={experience.date}
     iconStyle={{ background: experience.iconBg }}
     icon={
@@ -27,7 +27,7 @@ const ExperienceCard = ({ experience }) => (
       </p>
     </div>
     <ul className='mt-5 list-disc ml-5 space-y-2'>
-      {experience.points.map((point, index) => (  // Fixed syntax here
+      {experience.points.map((point, index) => ( 
         <li
           key={`experience-point-${index}`} // Fixed key name
           className='text-white text-[14px] pl-1 tracking-wider' // Fixed text color class

@@ -3,15 +3,10 @@ import {
     java,
     web,
     javascript,
-    typescript,
-    html,
-    css,
+ 
     reactjs,
-    tailwind,
     nodejs,
 
-    figma,
-    docker,
   cyss,
   med,
   pwc,
@@ -23,7 +18,6 @@ import {
     eco,
     pg,
     sql,
-    sdl2,
     py,
     c,
     vue,
@@ -64,30 +58,17 @@ import {
   ];
   
   const technologies = [
-    {
-      name: "HTML 5",
-      icon: html,
-    },
-    {
-      name: "CSS 3",
-      icon: css,
-    },
+ 
     {
       name: "JavaScript",
       icon: javascript,
     },
-    {
-      name: "TypeScript",
-      icon: typescript,
-    },
+ 
     {
       name: "React JS",
       icon: reactjs,
     },
-    {
-      name: "Tailwind CSS",
-      icon: tailwind,
-    },
+  
     {
       name: "Node JS",
       icon: nodejs,
@@ -98,14 +79,8 @@ import {
       icon: threejs,
     },
   
-    {
-      name: "figma",
-      icon: figma,
-    },
-    {
-      name: "docker",
-      icon: docker,
-    },
+  
+
     {
       name: "Vue.js",
       icon: vue, 
@@ -131,10 +106,7 @@ import {
       icon: sql, 
     },
 
-    {
-      name: "SDL2",
-      icon: sdl2, 
-    },
+ 
     {
       name: "Python",
       icon: py,
@@ -179,7 +151,7 @@ import {
       title: "Project - MEDTECH",
       company_name: "MEDTECH, Tunis",
       icon: med,
-      iconBg: "#383E56",
+      iconBg: "#E6DEDD",
       date: "February 2023 - May 2023",
       points: [
         "Built a C-based game application using SDL2 with three levels and a final boss.",
@@ -190,42 +162,31 @@ import {
       title: "Project - MEDTECH",
       company_name: "MEDTECH, Tunis",
       icon: med, // Placeholder for MEDTECH icon; replace with actual icon import
-      iconBg: "#E6DEDD",
+      iconBg: "#383E56",
       date: "February 2024 - May 2024",
       points: [
         "Developed a fleet management system with Vue.js 3.",
         "Enabled users to select electric scooters, while administrators managed the fleet.",
       ],
     },
-  ];
-  
-  const testimonials = [
     {
-      testimonial:
-        "I thought it was impossible to make a website as beautiful as our product, but Rick proved me wrong.",
-      name: "Sara Lee",
-      designation: "CFO",
-      company: "Acme Co",
-      image: "https://randomuser.me/api/portraits/women/4.jpg",
-    },
-    {
-      testimonial:
-        "I've never met a web developer who truly cares about their clients' success like Rick does.",
-      name: "Chris Brown",
-      designation: "COO",
-      company: "DEF Corp",
-      image: "https://randomuser.me/api/portraits/men/5.jpg",
-    },
-    {
-      testimonial:
-        "After Rick optimized our website, our traffic increased by 50%. We can't thank them enough!",
-      name: "Lisa Wang",
-      designation: "CTO",
-      company: "456 Enterprises",
-      image: "https://randomuser.me/api/portraits/women/6.jpg",
+      title: "Project - MEDTECH",
+      company_name: "MEDTECH, Tunis",
+      icon: med, // Placeholder for MEDTECH icon; replace with actual icon import
+      iconBg: "#E6DEDD",
+      date: "September 2024 - December 2024",
+      points: [
+        "Developed an eSports game management system with React and Express.",
+        "Enabled administrators to manage players, teams, and matches.",
+        "Integrated JWT authentication for secure, role-based access control.",
+        "Implemented real-time updates for scores, player stats, and schedules.",
+        "Utilized MongoDB for efficient data storage and retrieval."
+      ],
+      
     },
   ];
   
+ 
   const projects = [
 
     {
@@ -289,4 +250,4 @@ import {
     },
   ];
   
-  export { services, technologies, experiences, testimonials, projects };
+  export { services, technologies, experiences, projects };

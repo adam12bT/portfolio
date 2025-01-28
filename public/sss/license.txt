@@ -1,0 +1,11 @@
+Model Information:
+* title:	Sci-fi Factory Computer - 3D Model
+* source:	https://sketchfab.com/3d-models/sci-fi-factory-computer-3d-model-f39a80c795a14ca2a65d73b66de7c62d
+* author:	loarziel_ (https://sketchfab.com/loarziel_)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Sci-fi Factory Computer - 3D Model" (https://sketchfab.com/3d-models/sci-fi-factory-computer-3d-model-f39a80c795a14ca2a65d73b66de7c62d) by loarziel_ (https://sketchfab.com/loarziel_) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
