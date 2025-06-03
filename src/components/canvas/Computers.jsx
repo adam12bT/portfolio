@@ -3,7 +3,6 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, OrthographicCamera, Preload, useGLTF } from "@react-three/drei";
 
 import CanvasLoader from "../Loader";
-import StarsCanvas from "./Stars";
 
 const Computers = ({ isMobile }) => {
   const computer = useGLTF("/Nouveau dossier (2)/scene.gltf");
@@ -26,7 +25,7 @@ const Computers = ({ isMobile }) => {
       <primitive
         object={computer.scene}
         scale={isMobile ? 1.1 : 1.9}
-        position={isMobile ? [0, -1.5, 0] : [0, -1.5, 0]}
+        position={isMobile ? [0, -0.52, 0] : [0, -1.5, 0]}
         rotation={[-0, 0, -0.1]}
 
       />

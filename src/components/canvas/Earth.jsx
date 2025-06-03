@@ -6,16 +6,14 @@ import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
 import CanvasLoader from "../Loader";
 import { Scene } from "../car/Scene";
 
-// Earth component for mobile
-const Earth = () => {
+const Earth = ({scale}) => {
   const earth = useGLTF("/planet/scene.gltf");
 
   return (
-    <primitive object={earth.scene} scale={2.5} position-y={0} rotation-y={0} />
+    <primitive object={earth.scene} scale={scale} position-y={0} rotation-y={0} />
   );
 };
 
-// Desktop scene component
 
 
 const EarthCanvas = () => {
@@ -28,7 +26,6 @@ const EarthCanvas = () => {
       setIsMobile(event.matches);
     };
 
-    // Set initial value
     handleMediaQueryChange(mediaQuery);
 
     // Add the listener for changes
@@ -50,7 +47,7 @@ const EarthCanvas = () => {
         fov: 30,
         near: 0.1,
         far: 200,
-        position: [-4, 3, 6], // Adjust as needed
+        position: [-4,100 , 6],
       }}
     >
 
@@ -63,10 +60,10 @@ const EarthCanvas = () => {
               maxPolarAngle={Math.PI / 2}
               minPolarAngle={Math.PI / 2}
             />
-            <Earth />
+            <Earth scale ={22} />
           </>
         ) : (
-          <Scene />
+          <Scene scale ={2.5} />
           
         )}
 
