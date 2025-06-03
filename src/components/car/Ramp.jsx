@@ -7,7 +7,7 @@ import { useRef, useMemo } from "react";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 export function Ramp({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1] }) {
-  const result = useLoader(GLTFLoader, "/car/ramp.glb");
+  const result = useLoader(GLTFLoader, "./car/ramp.glb");
 
   const geometry = useMemo(() => {
     if (!result.scene?.children?.length) return null;

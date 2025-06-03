@@ -5,7 +5,7 @@ import { OrbitControls, OrthographicCamera, Preload, useGLTF } from "@react-thre
 import CanvasLoader from "../Loader";
 
 const Computers = ({ isMobile }) => {
-  const computer = useGLTF("/Nouveau dossier (2)/scene.gltf");
+  const computer = useGLTF("./Nouveau dossier (2)/scene.gltf");
 
   return (
     <mesh>

@@ -9,7 +9,7 @@ import { BufferAttribute, TextureLoader, Vector3 } from "three";
 export function Ground() {
   const [ref] = usePlane(() => ({ type: 'Static', rotation: [-Math.PI / 2, 0, 0] }), useRef(null));
 
-  const gridMap = useLoader(TextureLoader, "/car/grid.png");
+  const gridMap = useLoader(TextureLoader, "./car/grid.png");
 
   const meshRef = useRef(null);
   const halfSphereRef = useRef(null);
