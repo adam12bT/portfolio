@@ -154,6 +154,8 @@ import {
       iconBg: "#E6DEDD",
       date: "February 2023 - May 2023",
       points: [
+     "🏆Won 1st place award at MEDTECH for best student project.",
+
         "Built a C-based game application using SDL2 with three levels and a final boss.",
         "Enhanced programming and game development skills through real-world application.",
       ],
@@ -184,6 +186,25 @@ import {
       ],
       
     },
+      {
+      title: "Project - MEDTECH",
+      company_name: "MEDTECH, Tunis",
+      icon: med, // Placeholder for MEDTECH icon; replace with actual icon import
+      iconBg: "#E6DEDD",
+      date: "January 2025 - May 2025",
+      points: [
+    "Developed a smart marketplace platform enabling users to buy and sell products.",
+    "Built the mobile application using React Native.",
+    "Created the admin dashboard using React.",
+    "Integrated Ollama Mistral AI, fine-tuned with the RAG method, to enhance recommendations and intelligent search.",
+    "Implemented a custom blockchain system for secure transactions, based on Ethereum.",
+      ],
+      
+    },
+
+
+   
+        
   ];
   
  
