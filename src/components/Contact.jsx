@@ -9,7 +9,7 @@ import { SectionWrapper } from "../HOC";
 import { slideIn } from "../utils/motion";
 import EarthCanvas from "./canvas/Earth";
 
-// ✅ Firebase Config – replace these with YOUR values from Firebase Console
+// ✅ Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDAC0tKQah4aP08lIsSrQ7fo3iANac5fG4",
   authDomain: "adam-dfe4e.firebaseapp.com",
@@ -18,7 +18,7 @@ const firebaseConfig = {
   storageBucket: "adam-dfe4e.firebasestorage.app",
   messagingSenderId: "41649038563",
   appId: "1:41649038563:web:48a5e2eb5b10ff966291d6",
-  measurementId: "G-907RVW6D07"
+  measurementId: "G-907RVW6D07",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -31,14 +31,13 @@ const Contact = () => {
     email: "",
     link: "",
     message: "",
-     delivered:"false"
-
+    delivered: false,
   });
 
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value || "" }));
   };
 
   const handleSubmit = async (e) => {
@@ -47,7 +46,12 @@ const Contact = () => {
 
     try {
       await addDoc(collection(db, "contacts"), {
-        ...form,
+        firstName: form.firstName || "",
+        lastName: form.lastName || "",
+        email: form.email?.toLowerCase() || "",
+        link: form.link || "",
+        message: form.message || "",
+        delivered: false,
         timestamp: Timestamp.now(),
       });
 
@@ -58,7 +62,7 @@ const Contact = () => {
         email: "",
         link: "",
         message: "",
-        delivered:"false"
+        delivered: false,
       });
     } catch (error) {
       console.error("Error sending message:", error);
