@@ -9,7 +9,7 @@ import { SectionWrapper } from "../HOC";
 import { slideIn } from "../utils/motion";
 import EarthCanvas from "./canvas/Earth";
 
-// ✅ Firebase Config
+// ✅ Firebase Config – replace these with YOUR values from Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyDAC0tKQah4aP08lIsSrQ7fo3iANac5fG4",
   authDomain: "adam-dfe4e.firebaseapp.com",
@@ -18,7 +18,7 @@ const firebaseConfig = {
   storageBucket: "adam-dfe4e.firebasestorage.app",
   messagingSenderId: "41649038563",
   appId: "1:41649038563:web:48a5e2eb5b10ff966291d6",
-  measurementId: "G-907RVW6D07",
+  measurementId: "G-907RVW6D07"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -31,12 +31,14 @@ const Contact = () => {
     email: "",
     link: "",
     message: "",
+     delivered:"false"
+
   });
 
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value || "" }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -44,12 +46,10 @@ const Contact = () => {
     setLoading(true);
 
     try {
-await addDoc(collection(db, "contacts"), {
-  ...form,
-  email: safeLower(form.email),
-  delivered: false,
-  timestamp: Timestamp.now(),
-});
+      await addDoc(collection(db, "contacts"), {
+        ...form,
+        timestamp: Timestamp.now(),
+      });
 
       alert("Message sent successfully!");
       setForm({
@@ -58,6 +58,7 @@ await addDoc(collection(db, "contacts"), {
         email: "",
         link: "",
         message: "",
+        delivered:"false"
       });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -176,3 +177,4 @@ await addDoc(collection(db, "contacts"), {
 };
 
 export default SectionWrapper(Contact, "contact");
+
