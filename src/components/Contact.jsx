@@ -31,7 +31,7 @@ const Contact = () => {
     email: "",
     link: "",
     message: "",
-                delivered:"false",
+   delivered:"false",
 
   });
 
@@ -58,7 +58,7 @@ const Contact = () => {
         email: "",
         link: "",
         message: "",
-                    delivered:"false",
+       delivered:"false",
 
       });
     } catch (error) {
@@ -68,7 +68,7 @@ const Contact = () => {
 
     setLoading(false);
   };
-
+console.log(form)
   return (
     <div className="xl:mt-12 flex flex-col xl:flex-row gap-10 overflow-hidden w-full h-auto">
       <div className="flex flex-col gap-10 w-full xl:w-[35%]">
