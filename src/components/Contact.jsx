@@ -31,7 +31,6 @@ const Contact = () => {
     email: "",
     link: "",
     message: "",
-    delivered: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -45,15 +44,12 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      await addDoc(collection(db, "contacts"), {
-        firstName: form.firstName || "",
-        lastName: form.lastName || "",
-        email: form.email?.toLowerCase() || "",
-        link: form.link || "",
-        message: form.message || "",
-        delivered: false,
-        timestamp: Timestamp.now(),
-      });
+await addDoc(collection(db, "contacts"), {
+  ...form,
+  email: safeLower(form.email),
+  delivered: false,
+  timestamp: Timestamp.now(),
+});
 
       alert("Message sent successfully!");
       setForm({
@@ -62,7 +58,6 @@ const Contact = () => {
         email: "",
         link: "",
         message: "",
-        delivered: false,
       });
     } catch (error) {
       console.error("Error sending message:", error);
