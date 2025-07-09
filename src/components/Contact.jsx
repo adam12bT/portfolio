@@ -31,7 +31,7 @@ const Contact = () => {
     email: "",
     link: "",
     message: "",
-     delivered:"false"
+     delivered:"false",
 
   });
 
@@ -58,7 +58,7 @@ const Contact = () => {
         email: "",
         link: "",
         message: "",
-        delivered:"false"
+        delivered:"false",
       });
     } catch (error) {
       console.error("Error sending message:", error);
