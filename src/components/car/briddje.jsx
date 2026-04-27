@@ -6,7 +6,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 export function Brii({ position =[-4.49, 0, -2.2], rotation = [0, 0, 0], scale = [0.059, 0.059,0.059] }){
   // Load the GLTF model
-  const result = useLoader(GLTFLoader,"/car/new1.glb");
+  const result = useLoader(GLTFLoader,"./car/new1.glb");
 
   // Extract the geometry of the first child
   const geometry = result.scene.children[0].geometry;

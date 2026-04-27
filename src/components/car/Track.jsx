@@ -8,7 +8,7 @@ import { Bri } from "./bridje";
 import { Brii } from "./briddje";
 
 export function Track() {
-  const { scene } = useGLTF("/car/xx.glb");
+  const { scene } = useGLTF("./car/xx.glb");
 
   // Define the properties for the Ramp
   const rampProps = {

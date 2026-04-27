@@ -8,7 +8,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 export function Bri({ position =[-4, 1.2, 0.1], rotation = [0, 0, 0], scale = [27.19, 25, 22.6] }){
   // Load the GLTF model
-  const result = useLoader(GLTFLoader, "/car/floating.glb");
+  const result = useLoader(GLTFLoader, "./car/floating.glb");
 
   const geometry = result.scene.children[0].geometry;
 

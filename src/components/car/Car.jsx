@@ -11,7 +11,7 @@ import { useWheels } from "./useWheels";
 import { WheelDebug } from "./WheelDebug";
 
 export function Car() {
-  const result = useLoader(GLTFLoader, "/car/car.glb").scene; // Updated line
+  const result = useLoader(GLTFLoader, "./car/car.glb").scene; // Updated line
 
   const initialPosition = [-1.5, 2, 3];
   const width = 0.15;
