@@ -1,18 +1,22 @@
-import React, { Suspense, useEffect, useRef, useState, useMemo } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import React, { Suspense, useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Preload } from "@react-three/drei";
 import * as THREE from "three";
 import CanvasLoader from "../Loader";
 
 const API_URL = "https://ai-cv-vr15.onrender.com/ask";
 
+const TEX_W = 1024; // ← halved from 2048; still crisp on screen
+const TEX_H = 512;  // ← halved from 1024
+
 // ─── Canvas texture hook ───────────────────────────────────────────────────────
-function useScreenTexture(displayedText, cursorVisible) {
-  const texRef = useRef(null);
+// Key fix: offscreen canvas and CanvasTexture are created once and never recreated.
+// Only needsUpdate is set when content actually changes.
+function useScreenTexture() {
   const canvasRef = useRef(null);
+  const texRef = useRef(null);
 
   if (!canvasRef.current) {
-    const TEX_W = 2048, TEX_H = 1024;
     const offscreen = document.createElement("canvas");
     offscreen.width = TEX_W;
     offscreen.height = TEX_H;
@@ -31,11 +35,11 @@ function useScreenTexture(displayedText, cursorVisible) {
     texRef.current = tex;
   }
 
-  useEffect(() => {
-    const TEX_W = 2048, TEX_H = 2048;
+  // Returns a stable `paint` function — call it only when text/cursor actually changes.
+  const paint = useCallback((displayedText, cursorVisible) => {
     const offscreen = canvasRef.current;
     const ctx = offscreen.getContext("2d");
-    const S = 2.5;
+    const S = 1.25; // scaled down proportionally with texture size
     const PAD = 60 * S;
     const FONT = "'DM Sans', 'Segoe UI', sans-serif";
 
@@ -119,19 +123,30 @@ function useScreenTexture(displayedText, cursorVisible) {
     ctx.textAlign = "left";
 
     texRef.current.needsUpdate = true;
-  }, [displayedText, cursorVisible]);
+  }, []); // no deps — stable forever
 
-  return texRef.current;
+  return { texture: texRef.current, paint };
 }
 
 // ─── Monitor model ─────────────────────────────────────────────────────────────
 function Monitor({ isMobile, displayedText, cursorVisible }) {
-  const { scene } = useGLTF("./control_room_monitor.glb");
+  const { scene } = useGLTF("/control_room_monitor.glb");
   const { gl } = useThree();
   const matRef = useRef(null);
+  const { texture: screenTex, paint } = useScreenTexture();
 
-  const screenTex = useScreenTexture(displayedText, cursorVisible);
+  // Paint only when text or cursor actually changes — not on every render
+  const prevText = useRef(null);
+  const prevCursor = useRef(null);
+  useEffect(() => {
+    if (displayedText !== prevText.current || cursorVisible !== prevCursor.current) {
+      paint(displayedText, cursorVisible);
+      prevText.current = displayedText;
+      prevCursor.current = cursorVisible;
+    }
+  }, [displayedText, cursorVisible, paint]);
 
+  // Apply material once on mount
   useEffect(() => {
     if (!scene || !screenTex) return;
     screenTex.anisotropy = gl.capabilities.getMaxAnisotropy();
@@ -148,21 +163,13 @@ function Monitor({ isMobile, displayedText, cursorVisible }) {
     });
 
     scene.traverse((obj) => {
-      if (!obj.isMesh) return;
-      if (obj.name === "Object_4") {
+      if (obj.isMesh && obj.name === "Object_4") {
         obj.material = mat;
       }
     });
 
     matRef.current = mat;
-  }, [scene, gl]);
-
-  useEffect(() => {
-    if (!matRef.current || !screenTex) return;
-    matRef.current.map = screenTex;
-    matRef.current.emissiveMap = screenTex;
-    matRef.current.needsUpdate = true;
-  }, [screenTex]);
+  }, [scene, gl, screenTex]);
 
   const { scale, center } = useMemo(() => {
     if (!scene) return { scale: 1, center: new THREE.Vector3() };
@@ -188,6 +195,16 @@ function Monitor({ isMobile, displayedText, cursorVisible }) {
   );
 }
 
+// ─── Invalidate Three.js frame only when texture changes ──────────────────────
+// Works together with frameloop="demand" so GPU is idle when nothing moves.
+function TextureInvalidator({ displayedText, cursorVisible }) {
+  const { invalidate } = useThree();
+  useEffect(() => {
+    invalidate();
+  }, [displayedText, cursorVisible, invalidate]);
+  return null;
+}
+
 // ─── Main canvas component ─────────────────────────────────────────────────────
 const ComputersCanvas = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -196,8 +213,9 @@ const ComputersCanvas = () => {
   const [inputVal, setInputVal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Slow down cursor blink slightly to halve texture repaints (530 → 600ms)
   useEffect(() => {
-    const id = setInterval(() => setCursorVisible((v) => !v), 530);
+    const id = setInterval(() => setCursorVisible((v) => !v), 600);
     return () => clearInterval(id);
   }, []);
 
@@ -255,7 +273,6 @@ const ComputersCanvas = () => {
     return () => stopDemo();
   }, []);
 
-  // ─── Ask CV API ──────────────────────────────────────────────────────────────
   async function handleTransmit() {
     const question = inputVal.trim();
     if (!question || isLoading) return;
@@ -286,9 +303,9 @@ const ComputersCanvas = () => {
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh" }}>
       <Canvas
-        frameloop="always"
+        frameloop="demand"       // ← was "always"; now only renders when invalidated
         shadows
-        dpr={[1, Math.min(window.devicePixelRatio, 2)]}
+        dpr={[1, 1.5]}           // ← was [1, 2]; cap at 1.5× to save fill-rate on HiDPI
         camera={{ position: [0, 0.1, 1.8], fov: 30 }}
         gl={{
           preserveDrawingBuffer: true,
@@ -312,6 +329,11 @@ const ComputersCanvas = () => {
           />
           <Monitor
             isMobile={isMobile}
+            displayedText={displayedText}
+            cursorVisible={cursorVisible}
+          />
+          {/* Triggers a Three.js repaint when texture content changes */}
+          <TextureInvalidator
             displayedText={displayedText}
             cursorVisible={cursorVisible}
           />
