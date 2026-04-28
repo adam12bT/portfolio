@@ -1,5 +1,12 @@
-import React, { Suspense, useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import React, {
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Preload } from "@react-three/drei";
 import * as THREE from "three";
 import CanvasLoader from "../Loader";
@@ -9,11 +16,381 @@ const API_URL = "https://ai-cv-vr15.onrender.com/ask";
 const TEX_W = 1024; // ← halved from 2048; still crisp on screen
 const TEX_H = 512;  // ← halved from 1024
 
-// ─── Canvas texture hook ───────────────────────────────────────────────────────
-// Key fix: offscreen canvas and CanvasTexture are created once and never recreated.
-// Only needsUpdate is set when content actually changes.
+const TEX_W = 1024;
+const TEX_H = 512;
+
+const DEMO_LINES = [
+  "Hi, I'm Adam.",
+  "I create user experiences, interactive visuals, and robust applications.",
+  "This monitor streams AI responses in real time and you can ask it anything about me or my work.",
+];
+
+// ─── Shared streaming hook ─────────────────────────────────────────────────────
+function useStreamer() {
+  const [displayedText, setDisplayedText] = useState("");
+  const streamTimerRef = useRef(null);
+  const demoTimerRef = useRef(null);
+  const demoRunningRef = useRef(false);
+  const demoIndexRef = useRef(0);
+
+  const streamText = useCallback((text, speed = 26) => {
+    clearTimeout(streamTimerRef.current);
+    setDisplayedText("");
+    let i = 0;
+    function next() {
+      if (i < text.length) {
+        const char = text[i++];
+        setDisplayedText((prev) => prev + char);
+        streamTimerRef.current = setTimeout(
+          next,
+          speed + Math.random() * speed * 0.5
+        );
+      }
+    }
+    next();
+  }, []);
+
+  const stopDemo = useCallback(() => {
+    demoRunningRef.current = false;
+    clearTimeout(demoTimerRef.current);
+  }, []);
+
+  const startDemo = useCallback(() => {
+    demoRunningRef.current = true;
+    function runLine() {
+      if (!demoRunningRef.current) return;
+      const line = DEMO_LINES[demoIndexRef.current++ % DEMO_LINES.length];
+      streamText(line, 26);
+      demoTimerRef.current = setTimeout(runLine, line.length * 30 + 2600);
+    }
+    runLine();
+  }, [streamText]);
+
+  const resetDemo = useCallback(() => {
+    demoIndexRef.current = 0;
+    stopDemo();
+    startDemo();
+  }, [stopDemo, startDemo]);
+
+  return { displayedText, streamText, startDemo, stopDemo, resetDemo };
+}
+
+// ─── Shared ask handler ────────────────────────────────────────────────────────
+async function fetchAnswer(question, streamText, stopDemo, setIsLoading) {
+  stopDemo();
+  setIsLoading(true);
+  streamText("Thinking...", 30);
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    const data = await res.json();
+    streamText(data.answer, 22);
+  } catch {
+    streamText("Could not reach the CV server. Please try again.", 22);
+  } finally {
+    setIsLoading(false);
+  }
+}
+
+// ─── 2D Mobile Terminal ────────────────────────────────────────────────────────
+const MobileTerminal = () => {
+  const { displayedText, streamText, startDemo, stopDemo, resetDemo } =
+    useStreamer();
+  const [inputVal, setInputVal] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [cursorVisible, setCursorVisible] = useState(true);
+  const outputRef = useRef(null);
+
+  useEffect(() => {
+    const id = setInterval(() => setCursorVisible((v) => !v), 530);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    startDemo();
+    return () => stopDemo();
+  }, []);
+
+  useEffect(() => {
+    if (outputRef.current)
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+  }, [displayedText]);
+
+  async function handleAsk() {
+    const question = inputVal.trim();
+    if (!question || isLoading) return;
+    setInputVal("");
+    await fetchAnswer(question, streamText, stopDemo, setIsLoading);
+  }
+
+  const btnBase = {
+    fontFamily: "'DM Mono', 'Courier New', monospace",
+    letterSpacing: "0.05em",
+    cursor: "pointer",
+    borderRadius: 4,
+    fontSize: 10,
+    padding: "4px 10px",
+    background: "transparent",
+  };
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100vh",
+        background: "#0a0b14",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 16px",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Subtle scanline overlay */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundImage:
+            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(124,58,237,0.015) 2px, rgba(124,58,237,0.015) 4px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          width: "100%",
+          maxWidth: 440,
+          background: "rgba(13,15,26,0.97)",
+          border: "1px solid rgba(124,58,237,0.4)",
+          borderRadius: 10,
+          overflow: "hidden",
+          fontFamily: "'DM Mono', 'Courier New', monospace",
+          boxShadow:
+            "0 0 40px rgba(124,58,237,0.12), 0 0 80px rgba(124,58,237,0.06)",
+        }}
+      >
+        {/* Title bar */}
+        <div
+          style={{
+            background: "rgba(19,21,42,0.98)",
+            padding: "9px 14px",
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            borderBottom: "1px solid rgba(124,58,237,0.2)",
+          }}
+        >
+          {[
+            ["#7c3aed", 1],
+            ["#5b21b6", 0.55],
+            ["#4c1d95", 0.3],
+          ].map(([c, op], i) => (
+            <div
+              key={i}
+              style={{
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                background: c,
+                opacity: op,
+              }}
+            />
+          ))}
+          <span
+            style={{
+              marginLeft: 10,
+              fontSize: 11,
+              color: "rgba(168,85,247,0.55)",
+              letterSpacing: "0.12em",
+              userSelect: "none",
+            }}
+          >
+            adam.cv — terminal v1
+          </span>
+          <div style={{ flex: 1 }} />
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "#7c3aed",
+              boxShadow: "0 0 6px #7c3aed",
+              animation: "pulse 2s ease-in-out infinite",
+            }}
+          />
+        </div>
+
+        {/* Output area */}
+        <div
+          ref={outputRef}
+          style={{
+            padding: "16px 16px 12px",
+            minHeight: 190,
+            maxHeight: 250,
+            overflowY: "auto",
+            fontSize: 13,
+            lineHeight: 1.75,
+            color: "rgba(255,255,255,0.9)",
+          }}
+        >
+          <div
+            style={{
+              color: "rgba(124,58,237,0.5)",
+              marginBottom: 10,
+              fontSize: 10,
+              letterSpacing: "0.1em",
+            }}
+          >
+            ▸ CONNECTION ESTABLISHED · AI-CV NODE ONLINE
+          </div>
+          <div>
+            <span style={{ color: "rgba(168,85,247,0.45)", marginRight: 6 }}>
+              ❯
+            </span>
+            <span>{displayedText}</span>
+            <span
+              style={{
+                display: "inline-block",
+                width: 7,
+                height: "1em",
+                background: "#7c3aed",
+                verticalAlign: "text-bottom",
+                marginLeft: 2,
+                opacity: cursorVisible ? 1 : 0,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div
+          style={{
+            height: 1,
+            background:
+              "linear-gradient(90deg, transparent, rgba(124,58,237,0.4), transparent)",
+          }}
+        />
+
+        {/* Input row */}
+        <div
+          style={{
+            padding: "10px 12px",
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            background: "rgba(10,11,20,0.6)",
+          }}
+        >
+          <span style={{ color: "rgba(124,58,237,0.7)", fontSize: 14 }}>❯</span>
+          <input
+            type="text"
+            value={inputVal}
+            onChange={(e) => setInputVal(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAsk()}
+            placeholder="ask anything about Adam..."
+            disabled={isLoading}
+            style={{
+              flex: 1,
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "#e9d5ff",
+              fontFamily: "'DM Mono', 'Courier New', monospace",
+              fontSize: 13,
+              caretColor: "#7c3aed",
+              opacity: isLoading ? 0.5 : 1,
+            }}
+          />
+          <button
+            onClick={handleAsk}
+            disabled={isLoading}
+            style={{
+              background: isLoading
+                ? "rgba(124,58,237,0.06)"
+                : "rgba(124,58,237,0.18)",
+              border: "1px solid rgba(124,58,237,0.5)",
+              color: "#a855f7",
+              fontFamily: "'DM Mono', 'Courier New', monospace",
+              fontSize: 11,
+              fontWeight: 700,
+              padding: "6px 12px",
+              borderRadius: 5,
+              cursor: isLoading ? "not-allowed" : "pointer",
+              letterSpacing: "0.08em",
+              opacity: isLoading ? 0.4 : 1,
+              transition: "all 0.2s",
+              minWidth: 44,
+            }}
+          >
+            {isLoading ? "···" : "ASK"}
+          </button>
+        </div>
+
+        {/* Bottom action bar */}
+        <div
+          style={{
+            borderTop: "1px solid rgba(124,58,237,0.12)",
+            padding: "7px 12px",
+            display: "flex",
+            gap: 6,
+          }}
+        >
+          <button
+            onClick={resetDemo}
+            disabled={isLoading}
+            style={{
+              ...btnBase,
+              border: "1px solid rgba(124,58,237,0.28)",
+              color: "rgba(168,85,247,0.7)",
+              opacity: isLoading ? 0.4 : 1,
+            }}
+          >
+            AUTO DEMO
+          </button>
+          <button
+            onClick={() => {
+              stopDemo();
+              // clear text by streaming empty
+              streamText("", 1);
+            }}
+            style={{
+              ...btnBase,
+              border: "1px solid rgba(100,100,130,0.22)",
+              color: "rgba(255,255,255,0.28)",
+            }}
+          >
+            CLEAR
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.2; }
+        }
+        input::placeholder { color: rgba(255,255,255,0.22); }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 2px; }
+      `}</style>
+    </div>
+  );
+};
+
+// ─── Canvas texture hook (3D only) ────────────────────────────────────────────
 function useScreenTexture() {
   const canvasRef = useRef(null);
+  const texRef = useRef(null);
   const texRef = useRef(null);
 
   if (!canvasRef.current) {
@@ -35,11 +412,10 @@ function useScreenTexture() {
     texRef.current = tex;
   }
 
-  // Returns a stable `paint` function — call it only when text/cursor actually changes.
   const paint = useCallback((displayedText, cursorVisible) => {
     const offscreen = canvasRef.current;
     const ctx = offscreen.getContext("2d");
-    const S = 1.25; // scaled down proportionally with texture size
+    const S = 1.25;
     const PAD = 60 * S;
     const FONT = "'DM Sans', 'Segoe UI', sans-serif";
 
@@ -93,7 +469,9 @@ function useScreenTexture() {
     for (let i = 0; i < lastWords.length; i++) {
       const isLast = i === lastWords.length - 1;
       ctx.fillStyle = isLast ? "#c084fc" : "rgba(255,255,255,0.95)";
-      ctx.shadowColor = isLast ? "rgba(168,85,247,0.8)" : "rgba(200,180,255,0.6)";
+      ctx.shadowColor = isLast
+        ? "rgba(168,85,247,0.8)"
+        : "rgba(200,180,255,0.6)";
       ctx.shadowBlur = 18;
       const word = lastWords[i] + (isLast ? "" : " ");
       ctx.fillText(word, lx, ty);
@@ -113,40 +491,38 @@ function useScreenTexture() {
     ctx.fillStyle = fade;
     ctx.fillRect(0, TEX_H - 100 * S, TEX_W, 100 * S);
 
-    ctx.font = `${14 * S}px ${FONT}`;
-    ctx.fillStyle = "rgba(168,85,247,0.5)";
-    ctx.textAlign = "left";
-    ctx.fillText(`adam.dev  ·  ${displayedText.length} chars`, PAD, TEX_H - 30 * S);
     ctx.textAlign = "right";
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.fillStyle = "rgba(168,85,247,0.4)";
+    ctx.font = `300 ${fontSize * 0.8}px ${FONT}`;
     ctx.fillText(`Time:  ${ts}`, TEX_W - PAD, TEX_H - 30 * S);
     ctx.textAlign = "left";
 
     texRef.current.needsUpdate = true;
-  }, []); // no deps — stable forever
+  }, []);
 
+  return { texture: texRef.current, paint };
   return { texture: texRef.current, paint };
 }
 
 // ─── Monitor model ─────────────────────────────────────────────────────────────
 function Monitor({ isMobile, displayedText, cursorVisible }) {
-  const { scene } = useGLTF("./control_room_monitor.glb");
+  const { scene } = useGLTF("/control_room_monitor.glb");
   const { gl } = useThree();
-  const matRef = useRef(null);
   const { texture: screenTex, paint } = useScreenTexture();
 
-  // Paint only when text or cursor actually changes — not on every render
   const prevText = useRef(null);
   const prevCursor = useRef(null);
   useEffect(() => {
-    if (displayedText !== prevText.current || cursorVisible !== prevCursor.current) {
+    if (
+      displayedText !== prevText.current ||
+      cursorVisible !== prevCursor.current
+    ) {
       paint(displayedText, cursorVisible);
       prevText.current = displayedText;
       prevCursor.current = cursorVisible;
     }
   }, [displayedText, cursorVisible, paint]);
 
-  // Apply material once on mount
   useEffect(() => {
     if (!scene || !screenTex) return;
     screenTex.anisotropy = gl.capabilities.getMaxAnisotropy();
@@ -164,11 +540,10 @@ function Monitor({ isMobile, displayedText, cursorVisible }) {
 
     scene.traverse((obj) => {
       if (obj.isMesh && obj.name === "Object_4") {
+      if (obj.isMesh && obj.name === "Object_4") {
         obj.material = mat;
       }
     });
-
-    matRef.current = mat;
   }, [scene, gl, screenTex]);
 
   const { scale, center } = useMemo(() => {
@@ -185,7 +560,7 @@ function Monitor({ isMobile, displayedText, cursorVisible }) {
     <primitive
       object={scene}
       rotation={[0, -Math.PI / 2, 0]}
-      scale={isMobile ? scale * 0.5 : scale}
+      scale={scale}
       position={[
         -center.x * scale,
         -center.y * scale,
@@ -196,7 +571,6 @@ function Monitor({ isMobile, displayedText, cursorVisible }) {
 }
 
 // ─── Invalidate Three.js frame only when texture changes ──────────────────────
-// Works together with frameloop="demand" so GPU is idle when nothing moves.
 function TextureInvalidator({ displayedText, cursorVisible }) {
   const { invalidate } = useThree();
   useEffect(() => {
@@ -205,68 +579,20 @@ function TextureInvalidator({ displayedText, cursorVisible }) {
   return null;
 }
 
-// ─── Main canvas component ─────────────────────────────────────────────────────
-const ComputersCanvas = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [displayedText, setDisplayedText] = useState("");
-  const [cursorVisible, setCursorVisible] = useState(true);
+// ─── Desktop 3D Canvas ────────────────────────────────────────────────────────
+const DesktopCanvas = () => {
+  const { displayedText, streamText, startDemo, stopDemo, resetDemo } =
+    useStreamer();
   const [inputVal, setInputVal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [cursorVisible, setCursorVisible] = useState(true);
 
   // Slow down cursor blink slightly to halve texture repaints (530 → 600ms)
   useEffect(() => {
     const id = setInterval(() => setCursorVisible((v) => !v), 600);
+    const id = setInterval(() => setCursorVisible((v) => !v), 600);
     return () => clearInterval(id);
   }, []);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 500px)");
-    setIsMobile(mq.matches);
-    const handler = (e) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const streamTimerRef = useRef(null);
-
-  function streamText(text, speed = 26) {
-    clearTimeout(streamTimerRef.current);
-    setDisplayedText("");
-    let i = 0;
-    function next() {
-      if (i < text.length) {
-        const char = text[i++];
-        setDisplayedText((prev) => prev + char);
-        streamTimerRef.current = setTimeout(next, speed + Math.random() * speed * 0.5);
-      }
-    }
-    next();
-  }
-
-  const DEMO_LINES = [
-    "Hi, I'm Adam.",
-    "I create user experiences, interactive visuals, and robust applications.",
-    "This monitor streams AI responses in real time and you can ask it anything about me or my work.",
-  ];
-
-  const demoIndexRef = useRef(0);
-  const demoTimeoutRef = useRef(null);
-  const demoRunningRef = useRef(false);
-
-  function runDemoLine() {
-    if (!demoRunningRef.current) return;
-    const line = DEMO_LINES[demoIndexRef.current++ % DEMO_LINES.length];
-    streamText(line, 26);
-    demoTimeoutRef.current = setTimeout(runDemoLine, line.length * 30 + 2600);
-  }
-  function startDemo() {
-    demoRunningRef.current = true;
-    runDemoLine();
-  }
-  function stopDemo() {
-    demoRunningRef.current = false;
-    clearTimeout(demoTimeoutRef.current);
-  }
 
   useEffect(() => {
     startDemo();
@@ -276,36 +602,16 @@ const ComputersCanvas = () => {
   async function handleTransmit() {
     const question = inputVal.trim();
     if (!question || isLoading) return;
-
-    stopDemo();
     setInputVal("");
-    setIsLoading(true);
-    streamText("Thinking...", 30);
-
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-
-      const data = await res.json();
-      streamText(data.answer, 22);
-    } catch (err) {
-      streamText("Could not reach the CV server. Please try again.", 22);
-    } finally {
-      setIsLoading(false);
-    }
+    await fetchAnswer(question, streamText, stopDemo, setIsLoading);
   }
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh" }}>
       <Canvas
-        frameloop="demand"       // ← was "always"; now only renders when invalidated
+        frameloop="demand"
         shadows
-        dpr={[1, 1.5]}           // ← was [1, 2]; cap at 1.5× to save fill-rate on HiDPI
+        dpr={[1, 1.5]}
         camera={{ position: [0, 0.1, 1.8], fov: 30 }}
         gl={{
           preserveDrawingBuffer: true,
@@ -316,7 +622,11 @@ const ComputersCanvas = () => {
       >
         <ambientLight color={0x1a1030} intensity={6} />
         <directionalLight position={[2, 3, 2]} intensity={1.2} color={0xffffff} />
-        <directionalLight position={[-2, 1, -1]} intensity={1.2} color={0x7c3aed} />
+        <directionalLight
+          position={[-2, 1, -1]}
+          intensity={1.2}
+          color={0x7c3aed}
+        />
 
         <Suspense fallback={<CanvasLoader />}>
           <OrbitControls
@@ -328,11 +638,9 @@ const ComputersCanvas = () => {
             maxPolarAngle={Math.PI / 2}
           />
           <Monitor
-            isMobile={isMobile}
             displayedText={displayedText}
             cursorVisible={cursorVisible}
           />
-          {/* Triggers a Three.js repaint when texture content changes */}
           <TextureInvalidator
             displayedText={displayedText}
             cursorVisible={cursorVisible}
@@ -341,11 +649,18 @@ const ComputersCanvas = () => {
         <Preload all />
       </Canvas>
 
-      <div style={{
-        position: "absolute", bottom: 28, left: "50%",
-        transform: "translateX(-50%)",
-        display: "flex", gap: 10, alignItems: "center", zIndex: 10,
-      }}>
+      <div
+        style={{
+          position: "absolute",
+          bottom: 28,
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          gap: 10,
+          alignItems: "center",
+          zIndex: 10,
+        }}
+      >
         <input
           type="text"
           value={inputVal}
@@ -355,11 +670,16 @@ const ComputersCanvas = () => {
           disabled={isLoading}
           style={{
             background: "rgba(13,15,26,0.9)",
-            border: `1px solid ${isLoading ? "rgba(124,58,237,0.15)" : "rgba(124,58,237,0.35)"}`,
+            border: `1px solid ${
+              isLoading ? "rgba(124,58,237,0.15)" : "rgba(124,58,237,0.35)"
+            }`,
             color: "#ffffff",
             fontFamily: "'DM Sans', sans-serif",
-            fontSize: 14, padding: "10px 18px", width: 360,
-            outline: "none", borderRadius: 6,
+            fontSize: 14,
+            padding: "10px 18px",
+            width: 360,
+            outline: "none",
+            borderRadius: 6,
             opacity: isLoading ? 0.6 : 1,
             transition: "opacity 0.2s, border-color 0.2s",
           }}
@@ -368,13 +688,18 @@ const ComputersCanvas = () => {
           onClick={handleTransmit}
           disabled={isLoading}
           style={{
-            background: isLoading ? "rgba(124,58,237,0.08)" : "rgba(124,58,237,0.2)",
+            background: isLoading
+              ? "rgba(124,58,237,0.08)"
+              : "rgba(124,58,237,0.2)",
             border: "1px solid rgba(124,58,237,0.5)",
             color: "#a855f7",
             fontFamily: "'DM Sans', sans-serif",
-            fontSize: 13, fontWeight: 700,
-            padding: "10px 20px", cursor: isLoading ? "not-allowed" : "pointer",
-            borderRadius: 6, letterSpacing: "0.05em",
+            fontSize: 13,
+            fontWeight: 700,
+            padding: "10px 20px",
+            cursor: isLoading ? "not-allowed" : "pointer",
+            borderRadius: 6,
+            letterSpacing: "0.05em",
             opacity: isLoading ? 0.5 : 1,
             transition: "opacity 0.2s",
           }}
@@ -382,16 +707,19 @@ const ComputersCanvas = () => {
           {isLoading ? "..." : "ASK"}
         </button>
         <button
-          onClick={() => { demoIndexRef.current = 0; startDemo(); }}
+          onClick={resetDemo}
           disabled={isLoading}
           style={{
             background: "rgba(124,58,237,0.2)",
             border: "1px solid rgba(124,58,237,0.5)",
             color: "#a855f7",
             fontFamily: "'DM Sans', sans-serif",
-            fontSize: 13, fontWeight: 700,
-            padding: "10px 20px", cursor: isLoading ? "not-allowed" : "pointer",
-            borderRadius: 6, letterSpacing: "0.05em",
+            fontSize: 13,
+            fontWeight: 700,
+            padding: "10px 20px",
+            cursor: isLoading ? "not-allowed" : "pointer",
+            borderRadius: 6,
+            letterSpacing: "0.05em",
             opacity: isLoading ? 0.5 : 1,
           }}
         >
@@ -405,6 +733,26 @@ const ComputersCanvas = () => {
       `}</style>
     </div>
   );
+};
+
+// ─── Root component — mobile gate ─────────────────────────────────────────────
+const ComputersCanvas = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 500px)");
+    setIsMobile(mq.matches);
+    setChecked(true);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Avoid flash of wrong content on first render
+  if (!checked) return null;
+
+  return isMobile ? <MobileTerminal /> : <DesktopCanvas />;
 };
 
 export default ComputersCanvas;
