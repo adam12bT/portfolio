@@ -13,9 +13,6 @@ import CanvasLoader from "../Loader";
 
 const API_URL = "https://ai-cv-vr15.onrender.com/ask";
 
-const TEX_W = 1024; // ← halved from 2048; still crisp on screen
-const TEX_H = 512;  // ← halved from 1024
-
 const TEX_W = 1024;
 const TEX_H = 512;
 
@@ -391,7 +388,6 @@ const MobileTerminal = () => {
 function useScreenTexture() {
   const canvasRef = useRef(null);
   const texRef = useRef(null);
-  const texRef = useRef(null);
 
   if (!canvasRef.current) {
     const offscreen = document.createElement("canvas");
@@ -501,12 +497,11 @@ function useScreenTexture() {
   }, []);
 
   return { texture: texRef.current, paint };
-  return { texture: texRef.current, paint };
 }
 
 // ─── Monitor model ─────────────────────────────────────────────────────────────
-function Monitor({ isMobile, displayedText, cursorVisible }) {
-  const { scene } =useGLTF('/portfolio/control_room_monitor.glb')
+function Monitor({ displayedText, cursorVisible }) {
+  const { scene } = useGLTF("/control_room_monitor.glb");
   const { gl } = useThree();
   const { texture: screenTex, paint } = useScreenTexture();
 
@@ -539,7 +534,6 @@ function Monitor({ isMobile, displayedText, cursorVisible }) {
     });
 
     scene.traverse((obj) => {
-      if (obj.isMesh && obj.name === "Object_4") {
       if (obj.isMesh && obj.name === "Object_4") {
         obj.material = mat;
       }
@@ -587,9 +581,7 @@ const DesktopCanvas = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [cursorVisible, setCursorVisible] = useState(true);
 
-  // Slow down cursor blink slightly to halve texture repaints (530 → 600ms)
   useEffect(() => {
-    const id = setInterval(() => setCursorVisible((v) => !v), 600);
     const id = setInterval(() => setCursorVisible((v) => !v), 600);
     return () => clearInterval(id);
   }, []);
