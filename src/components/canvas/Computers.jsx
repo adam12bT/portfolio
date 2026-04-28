@@ -32,7 +32,7 @@ function useScreenTexture(displayedText, cursorVisible) {
   }
 
   useEffect(() => {
-    const TEX_W = 2048, TEX_H = 2048;
+    const TEX_W = 2048, TEX_H = 1024;
     const offscreen = canvasRef.current;
     const ctx = offscreen.getContext("2d");
     const S = 2.5;
