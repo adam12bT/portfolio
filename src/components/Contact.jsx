@@ -31,6 +31,8 @@ const Contact = () => {
     email: "",
     link: "",
     message: "",
+     delivered:"false",
+
   });
 
   const [loading, setLoading] = useState(false);
@@ -56,6 +58,7 @@ const Contact = () => {
         email: "",
         link: "",
         message: "",
+        delivered:"false",
       });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -174,3 +177,4 @@ const Contact = () => {
 };
 
 export default SectionWrapper(Contact, "contact");
+
