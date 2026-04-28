@@ -506,7 +506,7 @@ function useScreenTexture() {
 
 // ─── Monitor model ─────────────────────────────────────────────────────────────
 function Monitor({ isMobile, displayedText, cursorVisible }) {
-  const { scene } = useGLTF("/control_room_monitor.glb");
+  const { scene } =useGLTF('/portfolio/control_room_monitor.glb')
   const { gl } = useThree();
   const { texture: screenTex, paint } = useScreenTexture();
 
