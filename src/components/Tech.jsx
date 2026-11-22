@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { BallCanvas } from "./canvas"
+import BallCanvas from "./canvas/Ball"
 import { SectionWrapper } from "../HOC"
 import { technologies } from "../const"
 

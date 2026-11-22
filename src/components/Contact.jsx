@@ -1,30 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
+import { useSectionVisibility } from "../hooks/useSectionVisibility";
 import { motion } from "framer-motion";
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
 
 import { styles } from "../style";
 import { SectionWrapper } from "../HOC";
 import { slideIn } from "../utils/motion";
-import EarthCanvas from "./canvas/Earth";
-
-// ✅ Firebase Config – replace these with YOUR values from Firebase Console
-const firebaseConfig = {
-  apiKey: "AIzaSyDAC0tKQah4aP08lIsSrQ7fo3iANac5fG4",
-  authDomain: "adam-dfe4e.firebaseapp.com",
-  databaseURL: "https://adam-dfe4e-default-rtdb.firebaseio.com",
-  projectId: "adam-dfe4e",
-  storageBucket: "adam-dfe4e.firebasestorage.app",
-  messagingSenderId: "41649038563",
-  appId: "1:41649038563:web:48a5e2eb5b10ff966291d6",
-  measurementId: "G-907RVW6D07"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const EarthCanvas = lazy(() => import("./canvas/Earth"));
 
 const Contact = () => {
+  const game = useSectionVisibility("600px");
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -46,10 +31,8 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      await addDoc(collection(db, "contacts"), {
-        ...form,
-        timestamp: Timestamp.now(),
-      });
+      const { saveContact } = await import("../lib/contactStorage");
+      await saveContact(form);
 
       alert("Message sent successfully!");
       setForm({
@@ -167,10 +150,11 @@ const Contact = () => {
       </div>
 
       <motion.div
+        ref={game.ref}
         variants={slideIn("right", "tween", 0.2, 1)}
         className="xl:flex-1 xl:h-auto md:h-[80vh] h-[60vh]"
       >
-        <EarthCanvas />
+        {game.hasEntered && <Suspense fallback={null}><EarthCanvas active={game.isActive} /></Suspense>}
       </motion.div>
     </div>
   );

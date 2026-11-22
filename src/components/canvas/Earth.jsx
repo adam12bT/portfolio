@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unknown-property */
+/* eslint-disable react/no-unknown-property, react/prop-types */
 import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
@@ -7,7 +7,7 @@ import CanvasLoader from "../Loader";
 import { Scene } from "../car/Scene";
 
 const Earth = ({scale}) => {
-  const earth = useGLTF("./planet/scene.gltf");
+  const earth = useGLTF(`${import.meta.env.BASE_URL}planet/scene.gltf`);
 
   return (
     <primitive object={earth.scene} scale={scale} position-y={0} rotation-y={0} />
@@ -16,7 +16,7 @@ const Earth = ({scale}) => {
 
 
 
-const EarthCanvas = () => {
+const EarthCanvas = ({ active = true }) => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -40,9 +40,9 @@ const EarthCanvas = () => {
   return (
     <Canvas
       shadows
-      frameloop='demand'
+      frameloop={active ? "always" : "never"}
       dpr={[1, 2]}
-      gl={{ preserveDrawingBuffer: true }}
+      gl={{ antialias: true }}
       camera={{
         fov: 30,
         near: 0.1,
@@ -63,7 +63,7 @@ const EarthCanvas = () => {
             <Earth scale ={22} />
           </>
         ) : (
-          <Scene scale ={2.5} />
+          <Scene active={active} />
           
         )}
 

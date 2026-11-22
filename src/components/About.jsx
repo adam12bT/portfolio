@@ -29,7 +29,9 @@ const ServiceCard = ({ index, title, icon }) => (
       >
         <img
           src={icon}
-          alt='web-development'
+          alt={title}
+          width={64}
+          height={64}
           className='w-16 h-16 object-contain'
         />
 
@@ -53,7 +55,7 @@ const About = () => {
         variants={fadeIn("", "", 0.1, 1)}
         className='mt-4 text-secondary text-[17px] max-w-3xl leading-[30px]'
       >
-I am a dedicated software engineering student with experience in web development, game design, and real-time communication platforms. Skilled in C, Python, Java, HTML, CSS, JavaScript, and SQL, I've developed applications like an internal social network for PwC using Angular and Spring Boot, and a game using SDL2. Proficient with tools like IntelliJ, SQL Workbench, and React, I’m eager to apply my technical abilities to impactful tech projects. Thriving in diverse environments, I am always open to new challenges and learning opportunities      </motion.p>
+I'm a software engineering student at MEDTECH focused on AI, LLMs, and MLOps. Through internships at Wevioo and PwC, I've built multi-agent workflows, RAG pipelines, and ML deployment systems. I work with Python, LangGraph, LangChain, FastAPI, and PyTorch, combining AI engineering with full-stack development to turn ideas into practical applications.      </motion.p>
 
       <div className='mt-20 flex flex-wrap gap-10'>
         {services.map((service, index) => (

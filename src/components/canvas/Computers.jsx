@@ -1,4 +1,5 @@
-import React, {
+/* eslint-disable react/no-unknown-property, react/prop-types */
+import {
   Suspense,
   useEffect,
   useRef,
@@ -10,6 +11,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Preload } from "@react-three/drei";
 import * as THREE from "three";
 import CanvasLoader from "../Loader";
+import { useSectionVisibility } from "../../hooks/useSectionVisibility";
 
 const API_URL = "https://ai-cv-vr15.onrender.com/ask";
 
@@ -24,6 +26,11 @@ const DEMO_LINES = [
 
 // ─── Shared streaming hook ─────────────────────────────────────────────────────
 function useStreamer() {
+  useEffect(() => () => {
+    clearTimeout(streamTimerRef.current);
+    clearTimeout(demoTimerRef.current);
+    demoRunningRef.current = false;
+  }, []);
   const [displayedText, setDisplayedText] = useState("");
   const streamTimerRef = useRef(null);
   const demoTimerRef = useRef(null);
@@ -110,7 +117,7 @@ const MobileTerminal = () => {
   useEffect(() => {
     startDemo();
     return () => stopDemo();
-  }, []);
+  }, [startDemo, stopDemo]);
 
   useEffect(() => {
     if (outputRef.current)
@@ -501,7 +508,7 @@ function useScreenTexture() {
 
 // ─── Monitor model ─────────────────────────────────────────────────────────────
 function Monitor({ displayedText, cursorVisible }) {
-  const { scene } = useGLTF("/control_room_monitor.glb");
+  const { scene } = useGLTF(`${import.meta.env.BASE_URL}control_room_monitor.glb`);
   const { gl } = useThree();
   const { texture: screenTex, paint } = useScreenTexture();
 
@@ -575,6 +582,7 @@ function TextureInvalidator({ displayedText, cursorVisible }) {
 
 // ─── Desktop 3D Canvas ────────────────────────────────────────────────────────
 const DesktopCanvas = () => {
+  const visibility = useSectionVisibility("200px");
   const { displayedText, streamText, startDemo, stopDemo, resetDemo } =
     useStreamer();
   const [inputVal, setInputVal] = useState("");
@@ -589,7 +597,7 @@ const DesktopCanvas = () => {
   useEffect(() => {
     startDemo();
     return () => stopDemo();
-  }, []);
+  }, [startDemo, stopDemo]);
 
   async function handleTransmit() {
     const question = inputVal.trim();
@@ -599,14 +607,14 @@ const DesktopCanvas = () => {
   }
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100vh" }}>
+    <div ref={visibility.ref} style={{ position: "relative", width: "100%", height: "100vh" }}>
       <Canvas
-        frameloop="demand"
+        frameloop={visibility.isActive ? "demand" : "never"}
         shadows
         dpr={[1, 1.5]}
         camera={{ position: [0, 0.1, 1.8], fov: 30 }}
         gl={{
-          preserveDrawingBuffer: true,
+          preserveDrawingBuffer: false,
           antialias: true,
           alpha: true,
           powerPreference: "high-performance",

@@ -1,7 +1,16 @@
+import proposalCover from "../assets/projects/ai-proposal-platform.svg";
+import pixelLandscape from "../assets/projects/pixel-landscape.png";
+import knowledgeCover from "../assets/projects/talk-to-your-data.svg";
+import pipelineCover from "../assets/projects/ml-pipeline.svg";
+import aiEngineer from "../assets/specialties/ai-engineer.svg";
+import llmRag from "../assets/specialties/llm-rag.svg";
+import mlops from "../assets/specialties/mlops.svg";
+import agenticAi from "../assets/specialties/agentic-ai.svg";
+import wevioo from "../assets/company/wevioo.svg";
+import theDot from "../assets/thedot.webp";
 import {
   spring,
     java,
-    web,
     javascript,
  
     reactjs,
@@ -39,24 +48,12 @@ import {
   ];
   
   const services = [
-    {
-      title: "Web Developer",
-      icon: web,
-    },
-    {
-      title: "Java Developer",
-      icon: java,
-    },
-    {
-      title: "Spring-Boot Developer",
-      icon:spring ,
-    },
-    {
-      title: "Angular Developer",
-      icon: angular,
-    },
+    { title: "AI Engineer", icon: aiEngineer },
+    { title: "LLM & RAG Engineer", icon: llmRag },
+    { title: "MLOps Engineer", icon: mlops },
+    { title: "Agentic AI Developer", icon: agenticAi },
   ];
-  
+
   const technologies = [
  
     {
@@ -122,6 +119,45 @@ import {
   ];
   
   const experiences = [
+    {
+      title: "AI Engineer Intern",
+      company_name: "Wevioo, Tunis",
+      icon: wevioo,
+      iconBg: "#FFFFFF",
+      iconClassName: "w-[88%] h-[88%]",
+      date: "July 2026 - August 2026",
+      points: [
+        "Built a six-stage LangGraph/LangChain agentic pipeline that transforms tender documents into reviewed proposal drafts, covering verification, extraction, research, generation, security, and quality checks.",
+        "Developed a RAG pipeline for internal PDF and DOCX documents using OCR, semantic chunking, embeddings, Qdrant/ChromaDB, and re-ranking.",
+        "Integrated AnythingLLM, GPT Researcher, and LLM Guard for document retrieval, automated research, and LLM-safety checks.",
+        "Implemented a documented FastAPI service with Celery/Redis background jobs and SSE streaming for live progress updates.",
+      ],
+    },
+    {
+      title: "Part-time Software Engineer",
+      company_name: "The Dot, Tunis",
+      icon: theDot,
+      iconBg: "#E6DEDD",
+      date: "April 2026 - June 2026",
+      points: [
+        "Delivered a team-adopted Streamlit application for CSV/XLSX cleaning and reporting, with interactive charts and Gemini-based analysis grounded in computed values.",
+        "Replaced manual startup selection with configurable scoring and ranked Excel reports.",
+        "Containerized and deployed two applications to Hugging Face Spaces through GitHub Actions CI/CD.",
+      ],
+    },
+    {
+      title: "MLOps Engineer Intern",
+      company_name: "PwC (PricewaterhouseCoopers), Tunis",
+      icon: pwc,
+      iconBg: "#E6DEDD",
+      date: "June 2025 - August 2025",
+      points: [
+        "Built a CrewAI/LangChain multi-agent pipeline using GPT-4o to process audio, image/OCR, and text inputs for training-data curation.",
+        "Implemented a judge agent to filter generated outputs before fine-tuning.",
+        "Fine-tuned Gemma 2B with LoRA, tracked experiments with MLflow, and versioned datasets with DVC.",
+        "Reduced deployment time by nearly 60% through GitLab CI/CD automation and blue-green deployment.",
+      ],
+    },
     {
       title: "Intern - PwC",
       company_name: "PwC (PricewaterhouseCoopers), Tunis",
@@ -209,6 +245,55 @@ import {
   
  
   const projects = [
+    {
+      name: "AI Proposal Platform",
+      description: "Transforms tender documents into evidence-grounded proposal drafts using multi-agent workflows, RAG, document extraction, asynchronous workers, and live progress updates.",
+      tags: [
+        { name: "langgraph", color: "blue-text-gradient" },
+        { name: "rag", color: "green-text-gradient" },
+        { name: "fastapi", color: "pink-text-gradient" },
+      ],
+      image: proposalCover,
+      image_alt: "Illustrated workflow from document extraction through retrieval, generation, and proposal review",
+      source_code_link: "https://github.com/adam12bT/wevioo_ai_project",
+    },
+    {
+      name: "Pixel-Art Landscape Generator",
+      description: "A custom pixel-patch Transformer for 64-by-64 landscape generation, with a React studio, text-to-scene controls, a FastAPI backend, and MLflow/DVC for tracking and versioning.",
+      tags: [
+        { name: "pytorch", color: "blue-text-gradient" },
+        { name: "transformer", color: "green-text-gradient" },
+        { name: "mlops", color: "pink-text-gradient" },
+      ],
+      image: pixelLandscape,
+      image_alt: "Generated pixel-art landscape example from the project's repository",
+      image_style: { imageRendering: "pixelated", objectFit: "contain", background: "#17182d" },
+      source_code_link: "https://github.com/adam12bT/deeplearning",
+    },
+    {
+      name: "Talk to Your Data",
+      description: "A document Q&A agent combining vector retrieval, web-search fallback, and sourced answers. Includes RAGAS evaluation, retrieval-drift tracking, and Streamlit and FastAPI interfaces.",
+      tags: [
+        { name: "langchain", color: "blue-text-gradient" },
+        { name: "gemini", color: "green-text-gradient" },
+        { name: "ragas", color: "pink-text-gradient" },
+      ],
+      image: knowledgeCover,
+      image_alt: "Illustrated document retrieval and grounded answer workflow",
+      source_code_link: "https://github.com/adam12bT/talk_to_ur_data",
+    },
+    {
+      name: "End-to-End ML Pipeline",
+      description: "A modular workflow for profiling and cleaning datasets, training and comparing ML models, and producing explanations and reports, with FastAPI services and CI/CD deployment configuration.",
+      tags: [
+        { name: "python", color: "blue-text-gradient" },
+        { name: "fastapi", color: "green-text-gradient" },
+        { name: "xgboost", color: "pink-text-gradient" },
+      ],
+      image: pipelineCover,
+      image_alt: "Illustrated machine-learning pipeline with ingestion, cleaning, training, and explanation stages",
+      source_code_link: "https://github.com/adam12bT/ml_pipeline",
+    },
 
     {
       name: "Electric Scooter Fleet Management",

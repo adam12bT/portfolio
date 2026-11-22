@@ -1,4 +1,5 @@
-import React, { Suspense } from "react";
+/* eslint-disable react/no-unknown-property, react/prop-types */
+import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   Decal,
@@ -8,6 +9,7 @@ import {
   useTexture,
 } from "@react-three/drei";
 
+import { useSectionVisibility } from "../../hooks/useSectionVisibility";
 import CanvasLoader from "../Loader";
 
 const Ball = (props) => {
@@ -38,11 +40,14 @@ const Ball = (props) => {
 };
 
 const BallCanvas = ({ icon }) => {
+  const visibility = useSectionVisibility();
   return (
+    <div ref={visibility.ref} className="w-full h-full">
+    {visibility.isActive && (
     <Canvas
       frameloop='demand'
       dpr={[1, 2]}
-      gl={{ preserveDrawingBuffer: true }}
+      gl={{ antialias: true }}
     >
       <Suspense fallback={<CanvasLoader />}>
         <OrbitControls enableZoom={false} />
@@ -51,6 +56,8 @@ const BallCanvas = ({ icon }) => {
 
       <Preload all />
     </Canvas>
+    )}
+    </div>
   );
 };
 

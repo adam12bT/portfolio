@@ -1,65 +1,26 @@
 import { useCompoundBody } from "@react-three/cannon";
 import { useRef } from "react";
+import { WHEEL_SETTINGS, CHASSIS_COM_OFFSET } from "./vehicleConfig";
 
 export const useWheels = (width, height, front, radius) => {
   const wheels = [useRef(null), useRef(null), useRef(null), useRef(null)];
-
-  const wheelInfo = {
-    radius,
-    directionLocal: [0, -1, 0],
-    axleLocal: [1, 0, 0],
-    suspensionStiffness: 60,
-    suspensionRestLength: 0.2, // Slightly increased for better performance
-    frictionSlip: 5,
-    dampingRelaxation: 2.3,
-    dampingCompression: 4.4,
-    maxSuspensionForce: 100000,
-    rollInfluence: 0.01,
-    maxSuspensionTravel: 0.2, // Increased for better suspension response
-    customSlidingRotationalSpeed: -30,
-    useCustomSlidingRotationalSpeed: true,
-  };
-
   const wheelInfos = [
-    {
-      ...wheelInfo,
-      chassisConnectionPointLocal: [-width * 0.65, height * 0.4, front],
-      isFrontWheel: true,
-    },
-    {
-      ...wheelInfo,
-      chassisConnectionPointLocal: [width * 0.65, height * 0.4, front],
-      isFrontWheel: true,
-    },
-    {
-      ...wheelInfo,
-      chassisConnectionPointLocal: [-width * 0.65, height * 0.4, -front],
-      isFrontWheel: false,
-    },
-    {
-      ...wheelInfo,
-      chassisConnectionPointLocal: [width * 0.65, height * 0.4, -front],
-      isFrontWheel: false,
-    },
-  ];
-
-  const propsFunc = () => ({
+    [-1, -1], [1, -1], [-1, 1], [1, 1],
+  ].map(([side, end]) => ({
+    ...WHEEL_SETTINGS,
+    radius,
+    chassisConnectionPointLocal: [side * width * 0.65, height * 0.4 + CHASSIS_COM_OFFSET, end * front],
+    isFrontWheel: end === -1,
+  }));
+  const wheelBody = () => ({
     collisionFilterGroup: 0,
-    mass: 5, // Increased mass for better interaction with the ground
-    shapes: [
-      {
-        args: [wheelInfo.radius, wheelInfo.radius, 0.1, 16], // Increased height for better collision detection
-        rotation: [0, 0, -Math.PI / 2],
-        type: "Cylinder",
-      },
-    ],
-    type: "Dynamic", // Consider changing to Dynamic for realistic physics
+    mass: 0,
+    type: "Kinematic",
+    shapes: [{ type: "Cylinder", args: [radius, radius, 0.1, 16], rotation: [0, 0, -Math.PI / 2] }],
   });
-
-  useCompoundBody(propsFunc, wheels[0]);
-  useCompoundBody(propsFunc, wheels[1]);
-  useCompoundBody(propsFunc, wheels[2]);
-  useCompoundBody(propsFunc, wheels[3]);
-
+  useCompoundBody(wheelBody, wheels[0]);
+  useCompoundBody(wheelBody, wheels[1]);
+  useCompoundBody(wheelBody, wheels[2]);
+  useCompoundBody(wheelBody, wheels[3]);
   return [wheels, wheelInfos];
 };

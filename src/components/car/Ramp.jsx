@@ -1,53 +1,24 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
-/* eslint-disable no-undef */
-import { useTrimesh } from "@react-three/cannon";
-import { useLoader } from "@react-three/fiber";
-import { useRef, useMemo } from "react";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { useMemo } from "react";
+import { useGLTF } from "@react-three/drei";
+import { useHeightfield } from "@react-three/cannon";
+import { RAMP_MATERIAL } from "./vehicleConfig";
+import { buildRampMeshes } from "./rampGeometry.js";
 
-export function Ramp({ position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1] }) {
-  const result = useLoader(GLTFLoader, "./car/ramp.glb");
+function SolidRamp({ mesh }) {
+  const [ref] = useHeightfield(() => ({
+    type: "Static",
+    material: RAMP_MATERIAL,
+    args: [mesh.heightfield.heights, { elementSize: mesh.heightfield.elementSize }],
+    position: mesh.heightfield.position,
+    rotation: mesh.heightfield.rotation,
+  }), undefined, [mesh]);
+  return <><group ref={ref} /><mesh geometry={mesh.geometry} material={mesh.material} castShadow receiveShadow /></>;
+}
 
-  const geometry = useMemo(() => {
-    if (!result.scene?.children?.length) return null;
-    return result.scene.children[0].geometry;
-  }, [result]);
-
-  const { vertices, indices } = useMemo(() => {
-    if (!geometry) return { vertices: [], indices: [] };
-
-    const vertices = Array.from(geometry.attributes.position.array);
-    const indices = Array.from(geometry.index.array);
-
-    // Scale vertices
-    const scaledVertices = vertices.map((v, i) => v * scale[i % 3]); // Scale x, y, z dynamically
-    return { vertices: scaledVertices, indices };
-  }, [geometry, scale]);
-
-  const [ref] = useTrimesh(
-    () => ({
-      args: [vertices, indices],
-      mass: 0, // Static object
-      position, // Physics body position
-      rotation, // Physics body rotation
-    }),
-    useRef(null)
-  );
-
-  return (
-    geometry && (
-      <mesh
-        ref={ref}
-        geometry={geometry}
-        scale={scale}
-        position={position}
-        rotation={rotation}
-        castShadow
-        receiveShadow
-      >
-        <meshStandardMaterial attach="material" color="gray" />
-      </mesh>
-    )
-  );
+export function Ramp({ placement }) {
+  const { scene } = useGLTF(`${import.meta.env.BASE_URL}car/ramp.glb`);
+  const meshes = useMemo(() => buildRampMeshes(scene, placement), [scene, placement]);
+  return <group>{meshes.map((mesh, index) => <SolidRamp key={index} mesh={mesh} />)}</group>;
 }
