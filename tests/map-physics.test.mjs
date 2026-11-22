@@ -332,8 +332,6 @@ test("full-speed bridge approaches do not snag in either direction", async () =>
       const q = chassis.quaternion;
       const force = drivingForce(1, chassis.velocity.length(), 2 * (q.w * q.x - q.y * q.z));
       for (let wheel = 0; wheel < 4; wheel++) vehicle.applyEngineForce(force / 2, wheel);
-      // Follow the lane so this checks the entry, rather than driving off an edge.
-      steerAlongBridge(chassis, vehicle, direction);
       world.step(1 / 120);
       const speed = chassis.velocity.length();
       assert(speed > 0.5 && speed > previousSpeed * 0.7, `bridge snag at ${chassis.position}: ${previousSpeed} to ${speed}`);
